@@ -1,5 +1,5 @@
 // Bump CACHE when shipping changes so phones pick up the new files.
-const CACHE = 'song-notebook-v7';
+const CACHE = 'song-notebook-v8';
 const FILES = ['./', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
