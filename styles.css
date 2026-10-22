@@ -53,9 +53,18 @@ body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
   border: 1px solid var(--border); background: var(--surface);
   color: var(--text); font-size: 20px; cursor: pointer;
 }
-#actionBtn { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 700; }
+.icon-btn.back { display: inline-flex; align-items: center; justify-content: center; padding: 0; margin-left: -8px; border: 0; background: none; }
 
-main { padding: 16px; max-width: 720px; margin: 0 auto; }
+.fab {
+  position: fixed; z-index: 6; right: 16px;
+  bottom: calc(var(--tabbar-h) + 16px + env(safe-area-inset-bottom));
+  width: 56px; height: 56px; border-radius: 28px; border: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--accent); color: var(--accent-text); cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .35);
+}
+
+main { padding: 16px 16px 88px; max-width: 720px; margin: 0 auto; }
 
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
@@ -142,7 +151,7 @@ textarea.lyrics { min-height: 320px; font-family: ui-monospace, Menlo, Consolas,
 .hint { font-size: 13px; color: var(--muted); }
 
 #toast {
-  position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + 16px + env(safe-area-inset-bottom));
+  position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + 84px + env(safe-area-inset-bottom));
   transform: translateX(-50%) translateY(20px); opacity: 0; pointer-events: none;
   background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 999px;
   font-size: 14px; font-weight: 600; transition: .2s; z-index: 10; max-width: calc(100% - 32px);

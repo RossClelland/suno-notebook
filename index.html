@@ -13,14 +13,15 @@
 </head>
 <body>
   <header class="topbar">
-    <button class="icon-btn" id="backBtn" aria-label="Back" hidden>&larr;</button>
+    <button class="icon-btn back" id="backBtn" aria-label="Back" hidden><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <h1 id="title">Songs</h1>
     <span class="spacer"></span>
     <button class="btn primary" id="saveBtn" hidden>Save</button>
-    <button class="icon-btn" id="actionBtn" aria-label="New" hidden>+</button>
   </header>
 
   <main id="view"></main>
+
+  <button class="fab" id="actionBtn" aria-label="New" hidden><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button>
 
   <nav class="tabbar">
     <a href="#/" data-tab="songs">Songs</a>
