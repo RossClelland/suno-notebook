@@ -76,6 +76,7 @@ main { padding: 16px; max-width: 720px; margin: 0 auto; }
 }
 .card h3 { margin: 0 0 4px; font-size: 17px; }
 .card p { margin: 0; color: var(--muted); font-size: 14px; }
+.card .style-text { color: var(--text); margin-top: 4px; white-space: pre-wrap; }
 .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 .pill {

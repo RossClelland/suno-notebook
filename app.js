@@ -48,6 +48,8 @@ function load() {
     }
   } catch (e) { /* start empty */ }
   data.songs.forEach(migrateSong);
+  // The old add button stored empty styles straight away; drop any left behind.
+  data.styles = data.styles.filter(s => (s.name || '').trim() || (s.prompt || '').trim());
   return data;
 }
 
@@ -704,16 +706,48 @@ function renderSong(id) {
 
 // ---------- style library ----------
 
+// Styles are edited in a sheet and only stored on Save, so a half-typed
+// style never lingers in the library.
+async function editStyle(existing) {
+  let name, prompt;
+  const buttons = [{ label: 'Save', value: 'save', kind: 'primary' }, { label: 'Cancel', value: null }];
+  if (existing) buttons.push({ label: 'Delete', value: 'delete', kind: 'danger' });
+  const r = await dialog({
+    title: existing ? 'Edit style' : 'New style',
+    html: `<label for="styName">Name</label>
+      <input type="text" id="styName" value="${esc(existing ? existing.name : '')}" placeholder="e.g. Dreamy synthpop">
+      <label for="styPrompt">Style prompt</label>
+      <textarea id="styPrompt" placeholder="e.g. dreamy synthpop, airy female vocal, 110 bpm">${esc(existing ? existing.prompt : '')}</textarea>`,
+    buttons,
+    onOpen: wrap => {
+      name = wrap.querySelector('#styName');
+      prompt = wrap.querySelector('#styPrompt');
+      (existing ? prompt : name).focus();
+    },
+  });
+  if (r === 'delete') {
+    const ok = await dialog({ title: 'Delete this style?', buttons: [{ label: 'Delete', value: true, kind: 'danger' }, { label: 'Cancel', value: null }] });
+    if (!ok) return;
+    state.styles = state.styles.filter(x => x.id !== existing.id);
+    save(true);
+    toast('Style deleted');
+  } else if (r === 'save') {
+    if (!prompt.value.trim()) { toast('Write a style prompt first'); return; }
+    if (existing) {
+      existing.name = name.value.trim() || 'Untitled style';
+      existing.prompt = prompt.value.trim();
+    } else {
+      state.styles.unshift({ id: uid(), name: name.value.trim() || 'Untitled style', prompt: prompt.value.trim(), tags: '', uses: 0, created: now() });
+    }
+    save(true);
+    toast('Style saved');
+  } else return;
+  renderStyles();
+}
+
 function renderStyles() {
   setTab('styles');
-  const add = () => {
-    state.styles.unshift({ id: uid(), name: '', prompt: '', tags: '', uses: 0, created: now() });
-    save(true);
-    renderStyles();
-    const first = $view.querySelector('.styleName');
-    if (first) first.focus();
-  };
-  setHeader('Styles', { action: add });
+  setHeader('Styles', { action: () => editStyle(null) });
 
   if (!state.styles.length) {
     $view.innerHTML = `
@@ -722,40 +756,32 @@ function renderStyles() {
         <p>Save the style prompts that gave you great results, so you can reuse them on any song.</p>
         <button class="btn primary" id="firstStyle">Add a style</button>
       </div>`;
-    document.getElementById('firstStyle').onclick = add;
+    document.getElementById('firstStyle').onclick = () => editStyle(null);
     return;
   }
 
   $view.innerHTML = state.styles.map(s => `
     <div class="card" data-id="${s.id}">
-      <input type="text" class="styleName" value="${esc(s.name)}" placeholder="Name, e.g. Dreamy synthpop" style="font-weight:700;margin-bottom:8px">
-      <textarea class="stylePrompt" placeholder="Style prompt">${esc(s.prompt)}</textarea>
+      <h3>${esc(s.name || 'Untitled style')}</h3>
+      <p class="style-text">${esc(s.prompt)}</p>
       <div class="row" style="justify-content:space-between;margin-top:8px">
         <span class="hint">Used ${s.uses || 0} time${s.uses === 1 ? '' : 's'}</span>
         <span class="row">
+          <button class="btn small" data-edit="1">Edit</button>
           <button class="btn small" data-copy="1">Copy</button>
-          <button class="btn small" data-new="1">New song</button>
-          <button class="btn small danger" data-del="1" aria-label="Delete style">✕</button>
+          <button class="btn small primary" data-new="1">New song</button>
         </span>
       </div>
     </div>`).join('');
 
   $view.querySelectorAll('.card').forEach(el => {
     const s = state.styles.find(x => x.id === el.dataset.id);
-    el.querySelector('.styleName').oninput = e => { s.name = e.target.value; save(); };
-    el.querySelector('.stylePrompt').oninput = e => { s.prompt = e.target.value; save(); };
+    el.querySelector('[data-edit]').onclick = () => editStyle(s);
     el.querySelector('[data-copy]').onclick = () => { s.uses = (s.uses || 0) + 1; save(); copy(s.prompt, 'Style'); };
     el.querySelector('[data-new]').onclick = () => {
       s.uses = (s.uses || 0) + 1;
       save();
       newSong({ status: 'writing', style: s.prompt });
-    };
-    el.querySelector('[data-del]').onclick = async () => {
-      const ok = await dialog({ title: 'Delete this style?', buttons: [{ label: 'Delete', value: true, kind: 'danger' }, { label: 'Cancel', value: null }] });
-      if (!ok) return;
-      state.styles = state.styles.filter(x => x.id !== s.id);
-      save(true);
-      renderStyles();
     };
   });
 }
