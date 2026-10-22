@@ -76,6 +76,7 @@ main { padding: 16px; max-width: 720px; margin: 0 auto; }
 }
 .card h3 { margin: 0 0 4px; font-size: 17px; }
 .card p { margin: 0; color: var(--muted); font-size: 14px; }
+.card .style-text { color: var(--text); margin-top: 4px; white-space: pre-wrap; }
 .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 .pill {
@@ -88,7 +89,7 @@ main { padding: 16px; max-width: 720px; margin: 0 auto; }
 .pill.keeper { color: var(--accent); }
 .pill.released { color: var(--ok); }
 
-.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 .chip {
   flex: none; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border);
   background: var(--surface); color: var(--text); font-size: 14px; cursor: pointer;
@@ -110,6 +111,8 @@ textarea.lyrics { min-height: 320px; font-family: ui-monospace, Menlo, Consolas,
   padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
   background: var(--surface-2); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;
 }
+[hidden] { display: none !important; }
+
 .btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 .btn.danger { color: var(--danger); }
 .btn.small { padding: 6px 10px; font-size: 14px; }
