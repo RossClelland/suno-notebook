@@ -159,7 +159,7 @@ function dialog({ title, body = '', html = '', buttons = [{ label: 'OK', value: 
   });
 }
 
-// ---------- AI text helpers ----------
+// ---------- lyrics tidy helpers ----------
 
 const SECTION_RE = /^\s*(?:#{1,6}\s*)?(?:\*\*|__|\*)?\s*[\[(]?\s*(intro|verse|pre[- ]?chorus|post[- ]?chorus|chorus|bridge|hook|refrain|outro|instrumental|interlude|break|solo|breakdown)(\s*\d+)?\s*[\])]?\s*:?\s*(?:\*\*|__|\*)?\s*$/i;
 const FIELD_RE = /^\s*(?:#{1,6}\s*)?(?:\*\*|__)?\s*(title|song title|style|style prompt|genre|lyrics)\s*(?::\s*(?:\*\*|__)?|(?:\*\*|__)\s*:|(?:\*\*|__)?\s*$)\s*(.*)$/i;
@@ -182,7 +182,7 @@ function stripMarkdown(line) {
     .replace(/\s+$/, '');
 }
 
-// Turns a chatbot reply into { title, style, lyrics } with Suno section tags.
+// Turns pasted text into { title, style, lyrics } with Suno section tags.
 function parseAiText(raw) {
   const lines = raw.replace(/\r\n?/g, '\n').replace(/```[a-z]*\n?/gi, '').split('\n');
   let title = '', style = '';
@@ -231,32 +231,6 @@ function parseAiText(raw) {
 
 function tidyLyrics(text) {
   return parseAiText(text).lyrics || text;
-}
-
-function aiPrompt(song, mode) {
-  const lines = [];
-  if (mode === 'improve') {
-    lines.push('Improve these song lyrics for Suno AI. Keep what works, tighten weak lines, and make the chorus memorable.');
-  } else {
-    lines.push('Write original song lyrics for Suno AI.');
-  }
-  lines.push('');
-  lines.push('Title: ' + (song.title.trim() || 'your choice'));
-  if (song.style.trim()) lines.push('Style: ' + song.style.trim());
-  if (song.notes.trim()) lines.push('What it is about: ' + song.notes.trim());
-  if (mode === 'improve' && song.lyrics.trim()) {
-    lines.push('', 'Current lyrics:', song.lyrics.trim());
-  }
-  lines.push('');
-  lines.push('Reply in exactly this format, with nothing before or after it:');
-  lines.push('Title: <song title>');
-  lines.push('Style: <comma-separated Suno style prompt, under 200 characters>');
-  lines.push('Lyrics:');
-  lines.push('[Verse]');
-  lines.push('...');
-  lines.push('');
-  lines.push('Use Suno section tags in square brackets, such as [Intro], [Verse], [Pre-Chorus], [Chorus], [Bridge] and [Outro]. Put performance cues in parentheses. No markdown, no explanations, under 3000 characters.');
-  return lines.join('\n');
 }
 
 // ---------- songs list ----------
@@ -438,61 +412,64 @@ function renderSong(id) {
 
   const doneCount = CHECKLIST.filter(c => draft.checklist[c.id]).length;
 
-  $view.innerHTML = `
-    <label for="t">Title</label>
-    <input type="text" id="t" value="${esc(draft.title)}" placeholder="Song title">
+  const checklistOpen = draft.status === 'keeper' || draft.status === 'released';
 
-    <label for="st">Status</label>
-    <select id="st">${STATUSES.map(s => `<option value="${s.id}" ${s.id === draft.status ? 'selected' : ''}>${s.label}</option>`).join('')}</select>
+  $view.innerHTML = `
+    <div class="row song-head">
+      <input type="text" id="t" value="${esc(draft.title)}" placeholder="Song title" aria-label="Title" style="flex:1">
+      <select id="st" aria-label="Status" style="width:auto">${STATUSES.map(s => `<option value="${s.id}" ${s.id === draft.status ? 'selected' : ''}>${s.label}</option>`).join('')}</select>
+    </div>
 
     <label for="nt">What it's about</label>
-    <textarea id="nt" placeholder="Theme, story, mood, lines you like… (also used in the AI prompt)">${esc(draft.notes)}</textarea>
+    <textarea id="nt" class="short" placeholder="Theme, story, mood, lines you like…">${esc(draft.notes)}</textarea>
 
-    <div class="ai-box">
-      <strong>Writing with ChatGPT or Claude?</strong>
-      <p class="hint">Copy a ready-made prompt, paste it into your AI chat, then paste the reply back here. The notebook tidies it into Suno format.</p>
-      <div class="btn-row">
-        <button class="btn small" id="aiPrompt">Copy AI prompt</button>
-        <button class="btn small primary" id="aiPaste">Paste AI reply</button>
+    <section class="card section">
+      <div class="section-head">
+        <h3>Lyrics <span class="ver" id="lyVer"></span></h3>
+        <span class="hint" id="lyCount"></span>
       </div>
-    </div>
+      <div class="tagbar">${LYRIC_TAGS.map(t => `<button class="btn small" data-tag="${t}">${t}</button>`).join('')}</div>
+      <textarea id="ly" class="lyrics" placeholder="[Verse]&#10;Write your lyrics here…" aria-label="Lyrics">${esc(draft.lyrics)}</textarea>
+      <div class="btn-row">
+        <button class="btn small primary" id="copyLy">Copy lyrics</button>
+        <button class="btn small" id="tidyLy">Tidy</button>
+      </div>
+    </section>
 
-    <label for="sty">Style prompt <span class="ver" id="styVer"></span></label>
-    <textarea id="sty" placeholder="e.g. melancholic indie folk, fingerpicked acoustic, warm male vocal, 90 bpm">${esc(draft.style)}</textarea>
-    <div class="counter" id="styCount"></div>
-    <div class="btn-row">
-      <button class="btn small" id="copySty">Copy style</button>
-      ${state.styles.length ? `<select id="pickSty" style="width:auto;flex:1"><option value="">Use a saved style…</option>${state.styles.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>` : ''}
-      <button class="btn small" id="saveSty">Save to library</button>
-    </div>
+    <section class="card section">
+      <div class="section-head">
+        <h3>Style <span class="ver" id="styVer"></span></h3>
+        <span class="hint" id="styCount"></span>
+      </div>
+      <textarea id="sty" placeholder="e.g. melancholic indie folk, fingerpicked acoustic, warm male vocal, 90 bpm" aria-label="Style prompt">${esc(draft.style)}</textarea>
+      <label for="ex">Exclude styles</label>
+      <input type="text" id="ex" value="${esc(draft.exclude)}" placeholder="e.g. autotune, EDM drops">
+      <div class="btn-row">
+        <button class="btn small primary" id="copySty">Copy style</button>
+        <button class="btn small" id="saveSty">Save to library</button>
+        ${state.styles.length ? `<select id="pickSty" style="width:auto;flex:1"><option value="">Use a saved style…</option>${state.styles.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>` : ''}
+      </div>
+    </section>
 
-    <label for="ex">Exclude styles</label>
-    <input type="text" id="ex" value="${esc(draft.exclude)}" placeholder="e.g. autotune, EDM drops">
+    <section class="card section">
+      <h3>Takes</h3>
+      <p class="hint">Paste the Suno link for any generation worth keeping. Each take remembers which lyrics and style versions it used.</p>
+      <div id="takes"></div>
+      <div class="row">
+        <input type="url" id="takeUrl" placeholder="https://suno.com/song/…" style="flex:1">
+        <button class="btn primary" id="addTake">Add</button>
+      </div>
+    </section>
 
-    <label for="ly">Lyrics <span class="ver" id="lyVer"></span></label>
-    <div class="tagbar">${LYRIC_TAGS.map(t => `<button class="btn small" data-tag="${t}">${t}</button>`).join('')}</div>
-    <textarea id="ly" class="lyrics" placeholder="[Verse]&#10;Write your lyrics here…">${esc(draft.lyrics)}</textarea>
-    <div class="counter" id="lyCount"></div>
-    <div class="btn-row">
-      <button class="btn small" id="copyLy">Copy lyrics</button>
-      <button class="btn small" id="tidyLy">Tidy</button>
-    </div>
+    <details class="card section" ${checklistOpen ? 'open' : ''}>
+      <summary><h3>Release checklist</h3><span class="hint" id="checkCount">${doneCount}/${CHECKLIST.length}</span></summary>
+      <div id="checks">${CHECKLIST.map(c => `
+        <label class="check ${draft.checklist[c.id] ? 'done' : ''}">
+          <input type="checkbox" data-c="${c.id}" ${draft.checklist[c.id] ? 'checked' : ''}><span>${c.label}</span>
+        </label>`).join('')}</div>
+    </details>
 
-    <h2 class="section-title">Takes</h2>
-    <p class="hint">Paste the Suno link for any generation worth keeping. Each take remembers which lyrics and style versions it used.</p>
-    <div id="takes"></div>
-    <div class="row">
-      <input type="url" id="takeUrl" placeholder="https://suno.com/song/…" style="flex:1">
-      <button class="btn primary" id="addTake">Add</button>
-    </div>
-
-    <h2 class="section-title">Release checklist <span class="hint" id="checkCount">${doneCount}/${CHECKLIST.length}</span></h2>
-    <div id="checks">${CHECKLIST.map(c => `
-      <label class="check ${draft.checklist[c.id] ? 'done' : ''}">
-        <input type="checkbox" data-c="${c.id}" ${draft.checklist[c.id] ? 'checked' : ''}><span>${c.label}</span>
-      </label>`).join('')}</div>
-
-    <div class="btn-row" style="margin-top:24px">
+    <div class="btn-row" style="margin-top:16px">
       ${isNew ? '' : '<button class="btn small" id="dup">Duplicate</button>'}
       ${isNew ? '' : '<button class="btn small danger" id="del">Delete song</button>'}
     </div>`;
@@ -500,8 +477,8 @@ function renderSong(id) {
   const $ = id => document.getElementById(id);
   const changed = () => { refreshSaveBtn(); renderVersionInfo(); stashDraft(); };
   const counts = () => {
-    $('styCount').textContent = draft.style.length + ' characters';
-    $('lyCount').textContent = draft.lyrics.length + ' characters';
+    $('styCount').textContent = draft.style.length + ' chars';
+    $('lyCount').textContent = draft.lyrics.length + ' chars';
   };
   counts();
 
@@ -578,41 +555,6 @@ function renderSong(id) {
     if (tidy === draft.lyrics) { toast('Already tidy'); return; }
     draft.lyrics = tidy; $('ly').value = tidy; counts(); changed();
     toast('Lyrics tidied');
-  };
-
-  $('aiPrompt').onclick = async () => {
-    let mode = 'new';
-    if (draft.lyrics.trim()) {
-      mode = await dialog({
-        title: 'Copy AI prompt',
-        body: 'Ask the AI to write new lyrics, or to improve the ones you have?',
-        buttons: [{ label: 'Improve mine', value: 'improve', kind: 'primary' }, { label: 'Write new', value: 'new' }],
-      });
-      if (!mode) return;
-    }
-    copy(aiPrompt(draft, mode), 'AI prompt');
-  };
-
-  $('aiPaste').onclick = async () => {
-    let clip = '';
-    try { clip = await navigator.clipboard.readText(); } catch (e) { /* user pastes by hand */ }
-    let box;
-    const ok = await dialog({
-      title: 'Paste AI reply',
-      html: `<textarea id="aiText" class="lyrics" style="min-height:220px" placeholder="Paste the whole reply here. Titles, style lines, markdown and chatter are sorted out for you.">${esc(clip)}</textarea>`,
-      buttons: [{ label: 'Use it', value: true, kind: 'primary' }, { label: 'Cancel', value: null }],
-      onOpen: wrap => { box = wrap.querySelector('#aiText'); if (!clip) box.focus(); },
-    });
-    if (!ok) return;
-    const parsed = parseAiText(box.value);
-    if (!parsed.lyrics) { toast('No lyrics found in that text'); return; }
-    const applied = ['lyrics'];
-    draft.lyrics = parsed.lyrics; $('ly').value = parsed.lyrics;
-    if (parsed.style && parsed.style !== draft.style) { draft.style = parsed.style; $('sty').value = parsed.style; applied.push('style'); }
-    if (parsed.title && !draft.title.trim()) { draft.title = parsed.title; $('t').value = parsed.title; $title.textContent = parsed.title; applied.push('title'); }
-    if (draft.status === 'idea') { draft.status = 'writing'; $('st').value = 'writing'; }
-    counts(); changed();
-    toast('Updated ' + applied.join(', ') + '. Save to keep it.');
   };
 
   if ($('pickSty')) $('pickSty').onchange = e => {
@@ -836,6 +778,11 @@ function renderSettings() {
         <button class="btn" id="import">Import backup</button>
       </div>
       <input type="file" id="file" accept="application/json,.json" hidden>
+    </div>
+    <div class="card">
+      <h3>Feedback</h3>
+      <p>Song Notebook is new. Tell me what's missing or annoying, it takes two minutes.</p>
+      <div class="btn-row"><a class="btn primary" href="https://tally.so/r/Z9j1by" target="_blank" rel="noopener">Send feedback</a></div>
     </div>
     <div class="card">
       <h3>About</h3>

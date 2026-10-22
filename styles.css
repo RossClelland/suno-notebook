@@ -108,7 +108,7 @@ textarea.lyrics { min-height: 320px; font-family: ui-monospace, Menlo, Consolas,
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
-  background: var(--surface-2); color: var(--text); font: inherit; font-weight: 600; cursor: pointer;
+  background: var(--surface-2); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;
 }
 .btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 .btn.danger { color: var(--danger); }
@@ -151,11 +151,19 @@ textarea.lyrics { min-height: 320px; font-family: ui-monospace, Menlo, Consolas,
 #saveBtn { padding: 8px 16px; }
 #saveBtn:disabled { background: var(--surface-2); color: var(--muted); border-color: var(--border); }
 
-.ai-box {
-  margin-top: 16px; padding: 14px; border-radius: var(--radius);
-  border: 1px dashed var(--accent); background: var(--surface);
-}
-.ai-box p { margin: 6px 0 0; }
+.song-head { margin-top: 4px; }
+textarea.short { min-height: 60px; }
+.section { margin-top: 16px; }
+.section h3 { margin: 0; font-size: 16px; }
+.section > .hint { margin: 4px 0 10px; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.section label { margin-top: 12px; }
+.section label.check { margin: 0; }
+details.section summary { display: flex; align-items: baseline; justify-content: space-between; cursor: pointer; list-style: none; }
+details.section summary::-webkit-details-marker { display: none; }
+details.section summary h3::before { content: '▸ '; color: var(--muted); }
+details.section[open] summary h3::before { content: '▾ '; }
+details.section[open] summary { margin-bottom: 4px; }
 
 .ver { font-weight: 400; }
 .ver-btn {
