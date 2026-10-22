@@ -838,6 +838,11 @@ function renderSettings() {
       <input type="file" id="file" accept="application/json,.json" hidden>
     </div>
     <div class="card">
+      <h3>Feedback</h3>
+      <p>Song Notebook is new. Tell me what's missing or annoying, it takes two minutes.</p>
+      <div class="btn-row"><a class="btn primary" href="https://tally.so/r/Z9j1by" target="_blank" rel="noopener">Send feedback</a></div>
+    </div>
+    <div class="card">
       <h3>About</h3>
       <p>${state.songs.length} songs · ${state.styles.length} saved styles</p>
       <p>Song Notebook is an independent tool and is not affiliated with Suno.</p>
