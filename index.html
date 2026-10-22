@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Song Notebook</title>
+  <meta name="description" content="A songwriter's notebook for Suno: style prompts, tagged lyrics, keeper takes and release tracking.">
+  <meta name="theme-color" content="#14121a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <button class="icon-btn" id="backBtn" aria-label="Back" hidden>&larr;</button>
+    <h1 id="title">Songs</h1>
+    <span class="spacer"></span>
+    <button class="icon-btn" id="actionBtn" aria-label="New" hidden>+</button>
+  </header>
+
+  <main id="view"></main>
+
+  <nav class="tabbar">
+    <a href="#/" data-tab="songs">Songs</a>
+    <a href="#/styles" data-tab="styles">Styles</a>
+    <a href="#/settings" data-tab="settings">More</a>
+  </nav>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
