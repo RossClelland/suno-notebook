@@ -274,8 +274,8 @@ function renderSongs() {
   $view.innerHTML = `
     <input type="search" id="q" placeholder="Search songs, lyrics, styles" value="${esc(songQuery)}">
     <div class="chips" style="margin-top:10px">
-      <button class="chip ${songFilter === 'all' ? 'on' : ''}" data-f="all">All ${state.songs.length}</button>
-      ${STATUSES.map(s => `<button class="chip ${songFilter === s.id ? 'on' : ''}" data-f="${s.id}">${s.label} ${counts[s.id] || 0}</button>`).join('')}
+      <button class="chip ${songFilter === 'all' ? 'on' : ''}" data-f="all">All <span class="n">${state.songs.length}</span></button>
+      ${STATUSES.map(s => `<button class="chip ${songFilter === s.id ? 'on' : ''}" data-f="${s.id}">${s.label} <span class="n">${counts[s.id] || 0}</span></button>`).join('')}
     </div>
     <div id="list"></div>`;
 
@@ -285,15 +285,23 @@ function renderSongs() {
       .filter(s => songFilter === 'all' || s.status === songFilter)
       .filter(s => !q || [s.title, s.lyrics, s.style, s.notes].join(' ').toLowerCase().includes(q))
       .sort((a, b) => b.updated.localeCompare(a.updated));
-    document.getElementById('list').innerHTML = songs.length ? songs.map(s => `
-      <a class="card" href="#/song/${s.id}">
+    document.getElementById('list').innerHTML = songs.length ? songs.map(s => {
+      const lv = latestV(s.lyricVersions);
+      const meta = [
+        s.takes.length ? s.takes.length + ' take' + (s.takes.length === 1 ? '' : 's') : 'No takes yet',
+        lv ? 'lyrics v' + lv : '',
+        relTime(s.updated),
+      ].filter(Boolean).join(' · ');
+      return `
+      <a class="card song-card ${s.status}" href="#/song/${s.id}">
         <div class="row" style="justify-content:space-between">
           <h3>${esc(s.title || 'Untitled song')}</h3>
           <span class="pill ${s.status}">${statusLabel(s.status)}</span>
         </div>
-        <p>${esc(s.style ? s.style.slice(0, 80) : 'No style yet')}</p>
-        <p>${s.takes.length} take${s.takes.length === 1 ? '' : 's'} · lyrics v${latestV(s.lyricVersions)} · style v${latestV(s.styleVersions)} · ${relTime(s.updated)}</p>
-      </a>`).join('') : '<p class="empty">Nothing matches.</p>';
+        <p class="${s.style ? 'style-line' : 'style-line none'}">${esc(s.style ? s.style.slice(0, 80) : 'No style yet')}</p>
+        <p>${meta}</p>
+      </a>`;
+    }).join('') : '<p class="empty">Nothing matches.</p>';
   };
 
   document.getElementById('q').oninput = e => { songQuery = e.target.value; drawList(); };
