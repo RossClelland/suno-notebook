@@ -825,6 +825,7 @@ function renderSettings() {
       <h3>About</h3>
       <p>${state.songs.length} songs · ${state.styles.length} saved styles</p>
       <p>Song Notebook is an independent tool and is not affiliated with Suno.</p>
+      <p>Your songs never leave this device. Visits to the app are counted anonymously with GoatCounter, with no cookies.</p>
     </div>`;
 
   const $ = id => document.getElementById(id);
