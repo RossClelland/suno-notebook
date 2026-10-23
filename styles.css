@@ -166,6 +166,18 @@ textarea.lyrics { min-height: 320px; font-family: ui-monospace, Menlo, Consolas,
 .empty { text-align: center; color: var(--muted); padding: 48px 16px; }
 .empty .btn { margin-top: 12px; }
 
+.topbar h1.brand { display: flex; align-items: center; gap: 10px; }
+.topbar h1.brand::before {
+  content: ''; flex: none; width: 28px; height: 28px; border-radius: 7px;
+  background: url(icons/icon.svg) center / cover;
+}
+.welcome { text-align: center; padding: 32px 8px; }
+.welcome img { border-radius: 18px; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); }
+.welcome h2 { font-size: 22px; margin: 16px 0 12px; }
+.welcome ul { text-align: left; max-width: 320px; margin: 0 auto 20px; padding-left: 20px; color: var(--muted); }
+.welcome li { margin: 6px 0; }
+.welcome .hint { margin-top: 12px; }
+
 .section-title { font-size: 15px; margin: 24px 0 8px; }
 .hint { font-size: 13px; color: var(--muted); }
 

@@ -129,7 +129,9 @@ function relTime(iso) {
 
 function setHeader(title, { back = false, action = null, saveBtn = null } = {}) {
   $title.textContent = title;
-  document.title = title === 'Songs' ? 'Song Notebook' : title + ' · Song Notebook';
+  // The home screen carries the app's name and icon so newcomers know where they are.
+  $title.classList.toggle('brand', title === 'Song Notebook');
+  document.title = title === 'Song Notebook' ? title : title + ' · Song Notebook';
   $back.hidden = !back;
   $action.hidden = !action;
   $action.onclick = action;
@@ -255,14 +257,20 @@ function newSong(extra) {
 
 function renderSongs() {
   setTab('songs');
-  setHeader('Songs', { action: () => newSong() });
+  setHeader('Song Notebook', { action: () => newSong() });
 
   if (!state.songs.length) {
     $view.innerHTML = `
-      <div class="empty">
-        <p><strong>No songs yet.</strong></p>
-        <p>Keep each song's style prompt, lyrics, best takes and release steps in one place.</p>
-        <button class="btn primary" id="firstSong">Start a song</button>
+      <div class="welcome">
+        <img src="icons/icon.svg" alt="" width="72" height="72">
+        <h2>A notebook for your Suno songs</h2>
+        <ul>
+          <li>Lyrics with one-tap [Verse] and [Chorus] tags</li>
+          <li>Style prompts you can save and reuse</li>
+          <li>Links to your best takes, with the versions that made them</li>
+        </ul>
+        <button class="btn primary" id="firstSong">Start your first song</button>
+        <p class="hint">Free, no sign-up. Everything stays on your phone.</p>
       </div>`;
     document.getElementById('firstSong').onclick = () => newSong();
     return;
